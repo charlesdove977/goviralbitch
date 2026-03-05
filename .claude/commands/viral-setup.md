@@ -240,7 +240,7 @@ For each API key configured (either new or existing), test the connection.
 Only if YouTube key exists in `.env`:
 
 ```bash
-source .env 2>/dev/null
+export $(grep -v '^#' .env | xargs) 2>/dev/null
 curl -s "https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=Google&key=$YOUTUBE_DATA_API_KEY"
 ```
 
@@ -254,7 +254,7 @@ Parse response:
 Only if OpenAI key exists in `.env`:
 
 ```bash
-source .env 2>/dev/null
+export $(grep -v '^#' .env | xargs) 2>/dev/null
 curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | head -c 500
 ```
 

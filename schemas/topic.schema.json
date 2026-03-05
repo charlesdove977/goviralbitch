@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "topic.schema.json",
+  "title": "Discovered Topic",
+  "description": "A topic discovered during /viral:discover, scored against the creator's ICP using 4 weighted criteria.",
+  "type": "object",
+  "required": ["id", "title", "source", "discovered_at", "scoring"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique topic ID (e.g., topic_20260304_001)" },
+    "title": { "type": "string", "description": "Topic title or headline" },
+    "description": { "type": "string", "description": "Brief description of the topic and why it's trending" },
+    "source": {
+      "type": "object",
+      "required": ["platform", "url"],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["youtube", "instagram", "tiktok", "linkedin", "facebook", "reddit", "x", "hackernews", "github", "web"]
+        },
+        "url": { "type": "string", "format": "uri" },
+        "author": { "type": "string" },
+        "engagement_signals": { "type": "string", "description": "What engagement made this stand out (e.g., 500 upvotes, trending)" }
+      }
+    },
+    "discovered_at": { "type": "string", "format": "date-time" },
+    "scoring": {
+      "type": "object",
+      "description": "4-criteria scoring per content-pipeline.md framework. Each 1-10, weighted by learning_weights.",
+      "required": ["icp_relevance", "timeliness", "content_gap", "proof_potential", "total", "weighted_total"],
+      "properties": {
+        "icp_relevance": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Does this matter to the creator's ideal audience?"
+        },
+        "timeliness": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Is this happening now? Early coverage beats late coverage."
+        },
+        "content_gap": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Is the topic saturated or is there room for a fresh take?"
+        },
+        "proof_potential": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Can you show something on screen, or is this just opinion?"
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 40,
+          "description": "Raw sum of all 4 scores"
+        },
+        "weighted_total": {
+          "type": "number",
+          "description": "Total after applying learning_weights from agent brain"
+        }
+      }
+    },
+    "pillars": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Which content pillars this topic maps to"
+    },
+    "competitor_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "competitor": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "performance": { "type": "string" }
+        }
+      },
+      "description": "How competitors have covered this topic (if at all)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["new", "developing", "scripted", "passed"],
+      "default": "new",
+      "description": "Current status in the pipeline"
+    },
+    "notes": { "type": "string", "description": "Free-form notes about this topic" }
+  },
+  "additionalProperties": false
+}

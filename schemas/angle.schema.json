@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "angle.schema.json",
+  "title": "Content Angle",
+  "description": "An angle developed from a topic using the Contrast Formula (common belief -> surprising truth), platform-specific.",
+  "type": "object",
+  "required": ["id", "topic_id", "platform", "contrast", "created_at"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique angle ID (e.g., angle_20260304_001)" },
+    "topic_id": { "type": "string", "description": "Reference to the source topic ID" },
+    "platform": {
+      "type": "string",
+      "enum": ["youtube_longform", "youtube_shorts", "instagram_reels", "instagram_posts", "tiktok", "linkedin", "facebook"],
+      "description": "Target platform this angle is optimized for"
+    },
+    "title": { "type": "string", "description": "Working title for this angle" },
+    "contrast": {
+      "type": "object",
+      "description": "The Contrast Formula: common belief (A) -> surprising truth (B)",
+      "required": ["common_belief", "surprising_truth", "contrast_strength"],
+      "properties": {
+        "common_belief": { "type": "string", "description": "What the audience currently believes (must be genuine, not a strawman)" },
+        "surprising_truth": { "type": "string", "description": "The insight that changes how they think (must be backed by evidence)" },
+        "contrast_strength": {
+          "type": "string",
+          "enum": ["mild", "moderate", "strong", "extreme"],
+          "description": "How big the gap is between A and B"
+        }
+      }
+    },
+    "target_audience": { "type": "string", "description": "Specific audience segment this angle speaks to" },
+    "pain_addressed": { "type": "string", "description": "What pain this addresses (time, money, complexity, status)" },
+    "proof_method": {
+      "type": "string",
+      "description": "How you'll prove the surprising truth (demo, data, before/after, case study)"
+    },
+    "funnel_direction": {
+      "type": "object",
+      "description": "CTA and monetization guidance for this angle",
+      "properties": {
+        "cta_type": {
+          "type": "string",
+          "enum": ["community", "lead_magnet", "newsletter", "website", "dm", "booking", "product"],
+          "description": "Primary CTA direction"
+        },
+        "cta_copy": { "type": "string", "description": "Suggested CTA text" },
+        "monetization_tie": { "type": "string", "description": "How this connects to monetization strategy" }
+      }
+    },
+    "competitor_angles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "competitor": { "type": "string" },
+          "their_angle": { "type": "string" },
+          "differentiation": { "type": "string" }
+        }
+      },
+      "description": "How competitors approached this topic and how this angle differs"
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "scripted", "passed"],
+      "default": "draft"
+    },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

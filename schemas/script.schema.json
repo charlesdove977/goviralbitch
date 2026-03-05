@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "script.schema.json",
+  "title": "Content Script",
+  "description": "A full content script generated from an angle and hooks, with filming cards for production.",
+  "type": "object",
+  "required": ["id", "angle_id", "hook_ids", "platform", "title", "estimated_duration", "status", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique script ID (e.g., script_20260304_001)"
+    },
+    "angle_id": {
+      "type": "string",
+      "description": "Reference to the source angle ID"
+    },
+    "hook_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hook IDs used in this script (opening hook, retention hook)"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["youtube_longform", "youtube_shorts", "instagram_reels", "tiktok", "linkedin"],
+      "description": "Target platform"
+    },
+    "title": {
+      "type": "string",
+      "description": "Suggested video title"
+    },
+    "script_structure": {
+      "type": "object",
+      "required": ["opening_hook", "retention_hook", "sections", "mid_cta", "closing_cta", "outro"],
+      "properties": {
+        "opening_hook": {
+          "type": "object",
+          "required": ["hook_text", "pattern", "visual_direction"],
+          "properties": {
+            "hook_text": { "type": "string", "description": "The opening hook line" },
+            "pattern": { "type": "string", "description": "HookGenie pattern used" },
+            "visual_direction": { "type": "string", "description": "What to show on screen during the hook" }
+          }
+        },
+        "retention_hook": {
+          "type": "object",
+          "required": ["text", "timestamp_target", "technique"],
+          "properties": {
+            "text": { "type": "string", "description": "Mini-hook to re-engage viewers at ~30s" },
+            "timestamp_target": { "type": "string", "description": "When to deliver (e.g., '30s', '45s')" },
+            "technique": { "type": "string", "description": "Retention technique (e.g., 'preview payoff', 'open loop', 'pattern interrupt')" }
+          }
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["title", "talking_points", "proof_element", "transition", "duration_estimate"],
+            "properties": {
+              "title": { "type": "string", "description": "Section heading" },
+              "talking_points": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Key points to cover (conversational, not verbatim)"
+              },
+              "proof_element": { "type": "string", "description": "Demo, data, story, or example for this section" },
+              "transition": { "type": "string", "description": "How to bridge to the next section" },
+              "duration_estimate": { "type": "string", "description": "Estimated time for this section (e.g., '2-3 min')" }
+            }
+          },
+          "minItems": 3,
+          "maxItems": 5,
+          "description": "Body sections (3-5)"
+        },
+        "mid_cta": {
+          "type": "object",
+          "required": ["text", "type", "placement"],
+          "properties": {
+            "text": { "type": "string", "description": "Soft, value-driven CTA" },
+            "type": { "type": "string", "description": "CTA type (community, lead_magnet, etc.)" },
+            "placement": { "type": "string", "description": "Where in the video (e.g., 'after section 2')" }
+          }
+        },
+        "closing_cta": {
+          "type": "object",
+          "required": ["text", "type", "template_source"],
+          "properties": {
+            "text": { "type": "string", "description": "Direct CTA" },
+            "type": { "type": "string", "description": "CTA type from cta-templates.json" },
+            "template_source": { "type": "string", "description": "Which template was used (or 'generated')" }
+          }
+        },
+        "outro": {
+          "type": "object",
+          "required": ["subscribe_prompt", "next_video_tease"],
+          "properties": {
+            "subscribe_prompt": { "type": "string", "description": "Subscribe CTA tied to video value" },
+            "next_video_tease": { "type": "string", "description": "Tease for a follow-up video" }
+          }
+        }
+      }
+    },
+    "filming_cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scene_number", "section_name", "shot_type", "say", "show", "duration_estimate", "notes"],
+        "properties": {
+          "scene_number": { "type": "integer", "description": "Sequential scene number" },
+          "section_name": { "type": "string", "description": "Matches script section title" },
+          "shot_type": {
+            "type": "string",
+            "enum": ["talking_head", "screen_recording", "b_roll", "split_screen", "whiteboard"],
+            "description": "Primary shot type for this scene"
+          },
+          "say": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "2-3 key points to communicate (not verbatim)"
+          },
+          "show": { "type": "string", "description": "Visual direction for this scene" },
+          "duration_estimate": { "type": "string", "description": "Estimated duration (e.g., '30s', '1-2 min')" },
+          "notes": { "type": "string", "description": "Energy level, tone shifts, props, setup" }
+        }
+      },
+      "description": "Scene-by-scene filming reference cards"
+    },
+    "shortform_structure": {
+      "type": "object",
+      "description": "Structure for shortform scripts (Shorts, Reels, TikTok, LinkedIn). Used instead of script_structure + filming_cards for shortform platforms.",
+      "required": ["beats", "cta", "estimated_duration"],
+      "properties": {
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["beat_number", "timestamp", "action", "visual"],
+            "properties": {
+              "beat_number": { "type": "integer", "description": "Sequential beat number" },
+              "timestamp": { "type": "string", "description": "Timing window (e.g., '0-3s', '3-8s')" },
+              "action": { "type": "string", "description": "What happens / what to say in this beat" },
+              "visual": { "type": "string", "description": "What to show on screen" },
+              "text_overlay": { "type": "string", "description": "On-screen text (empty if none)" },
+              "audio_note": { "type": "string", "description": "Trending sound placeholder, voiceover note, or music cue" }
+            }
+          },
+          "description": "Beat-by-beat script (timed actions for video) or paragraph-by-paragraph (LinkedIn)"
+        },
+        "caption": { "type": "string", "description": "Post caption / description" },
+        "hashtags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Hashtags for the post"
+        },
+        "cta": {
+          "type": "object",
+          "required": ["text", "type", "placement"],
+          "properties": {
+            "text": { "type": "string", "description": "CTA text" },
+            "type": { "type": "string", "description": "CTA type from cta-templates.json" },
+            "placement": { "type": "string", "description": "Where in the content (e.g., 'final beat', 'post footer')" }
+          }
+        },
+        "estimated_duration": { "type": "string", "description": "Estimated duration (e.g., '30-45s') or character count for LinkedIn" }
+      }
+    },
+    "estimated_duration": {
+      "type": "string",
+      "description": "Total estimated video duration (e.g., '8-12 minutes')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "filming", "published", "analyzed"],
+      "default": "draft",
+      "description": "Script lifecycle status"
+    },
+    "performance": {
+      "type": "object",
+      "description": "Performance data populated by /viral:analyze",
+      "properties": {
+        "views": { "type": "integer" },
+        "ctr": { "type": "number" },
+        "avg_view_duration": { "type": "number" },
+        "retention_30s": { "type": "number" },
+        "engagement_rate": { "type": "number" },
+        "analyzed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

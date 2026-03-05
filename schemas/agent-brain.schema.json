@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "agent-brain.schema.json",
+  "title": "Agent Brain",
+  "description": "Central brain for the Viral Command system. Evolving memory that all modules read from and /analyze updates.",
+  "type": "object",
+  "required": [
+    "identity",
+    "icp",
+    "pillars",
+    "platforms",
+    "competitors",
+    "cadence",
+    "monetization",
+    "learning_weights",
+    "hook_preferences",
+    "performance_patterns",
+    "metadata"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "description": "Creator identity and brand positioning",
+      "required": ["name", "brand", "niche", "tone"],
+      "properties": {
+        "name": { "type": "string", "description": "Creator's name" },
+        "brand": { "type": "string", "description": "Brand name or handle" },
+        "niche": { "type": "string", "description": "Primary content niche" },
+        "tone": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Content tone descriptors (e.g., practical, bold, educational)"
+        },
+        "differentiator": { "type": "string", "description": "What makes this creator unique" }
+      }
+    },
+    "icp": {
+      "type": "object",
+      "description": "Ideal Customer Profile — who the content is for",
+      "required": ["segments", "pain_points", "goals"],
+      "properties": {
+        "segments": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Audience segments (e.g., agency owners, solopreneurs)"
+        },
+        "pain_points": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Top pain points the audience experiences"
+        },
+        "goals": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "What the audience wants to achieve"
+        },
+        "platforms_they_use": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Where the audience spends time online"
+        },
+        "budget_range": { "type": "string", "description": "Revenue or budget range of ICP" }
+      }
+    },
+    "pillars": {
+      "type": "array",
+      "description": "Content pillars — the recurring themes all content maps to",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "keywords": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "description": "Platform configuration — where to research and where to post",
+      "required": ["research", "posting"],
+      "properties": {
+        "research": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["youtube", "instagram", "tiktok", "linkedin", "facebook", "reddit", "x", "hackernews", "github"]
+          },
+          "description": "Platforms to scan for topic discovery"
+        },
+        "posting": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["youtube", "youtube_shorts", "instagram_reels", "instagram_posts", "tiktok", "linkedin", "facebook"]
+          },
+          "description": "Platforms the creator actively posts on"
+        },
+        "api_keys_configured": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Which platform APIs are connected"
+        }
+      }
+    },
+    "competitors": {
+      "type": "array",
+      "description": "Creators to monitor for competitive insights",
+      "items": {
+        "type": "object",
+        "required": ["name", "platform", "handle"],
+        "properties": {
+          "name": { "type": "string" },
+          "platform": { "type": "string" },
+          "handle": { "type": "string" },
+          "why_watch": { "type": "string", "description": "What makes them worth monitoring" }
+        }
+      }
+    },
+    "cadence": {
+      "type": "object",
+      "description": "Posting rhythm and schedule",
+      "required": ["weekly_schedule"],
+      "properties": {
+        "weekly_schedule": {
+          "type": "object",
+          "properties": {
+            "shorts_per_day": { "type": "integer", "minimum": 0, "default": 2 },
+            "shorts_days": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }
+            },
+            "longform_per_week": { "type": "integer", "minimum": 0, "default": 2 },
+            "longform_days": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }
+            }
+          }
+        },
+        "optimal_times": {
+          "type": "object",
+          "description": "Best posting times discovered through analysis",
+          "additionalProperties": {
+            "type": "string",
+            "description": "Time in HH:MM format with timezone"
+          }
+        }
+      }
+    },
+    "monetization": {
+      "type": "object",
+      "description": "Monetization strategy — every piece of content should serve a funnel",
+      "required": ["primary_funnel", "cta_strategy"],
+      "properties": {
+        "primary_funnel": { "type": "string", "description": "Main monetization path (e.g., community, agency, SaaS)" },
+        "secondary_funnels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "cta_strategy": {
+          "type": "object",
+          "properties": {
+            "default_cta": { "type": "string", "description": "Default call-to-action for most content" },
+            "lead_magnet_url": { "type": "string" },
+            "community_url": { "type": "string" },
+            "newsletter_url": { "type": "string" },
+            "website_url": { "type": "string" }
+          }
+        },
+        "client_capture": { "type": "string", "description": "How the creator captures client info (DMs, form, booking link)" }
+      }
+    },
+    "learning_weights": {
+      "type": "object",
+      "description": "Scoring multipliers for topic discovery — updated by /analyze. Start at 1.0 (neutral).",
+      "required": ["icp_relevance", "timeliness", "content_gap", "proof_potential"],
+      "properties": {
+        "icp_relevance": { "type": "number", "minimum": 0.1, "maximum": 5.0, "default": 1.0 },
+        "timeliness": { "type": "number", "minimum": 0.1, "maximum": 5.0, "default": 1.0 },
+        "content_gap": { "type": "number", "minimum": 0.1, "maximum": 5.0, "default": 1.0 },
+        "proof_potential": { "type": "number", "minimum": 0.1, "maximum": 5.0, "default": 1.0 }
+      }
+    },
+    "hook_preferences": {
+      "type": "object",
+      "description": "Performance scores per hook pattern — updated by /analyze. Start at 0 (no data).",
+      "required": ["contradiction", "specificity", "timeframe_tension", "pov_as_advice", "vulnerable_confession", "pattern_interrupt"],
+      "properties": {
+        "contradiction": { "type": "number", "minimum": 0, "default": 0 },
+        "specificity": { "type": "number", "minimum": 0, "default": 0 },
+        "timeframe_tension": { "type": "number", "minimum": 0, "default": 0 },
+        "pov_as_advice": { "type": "number", "minimum": 0, "default": 0 },
+        "vulnerable_confession": { "type": "number", "minimum": 0, "default": 0 },
+        "pattern_interrupt": { "type": "number", "minimum": 0, "default": 0 }
+      }
+    },
+    "performance_patterns": {
+      "type": "object",
+      "description": "Aggregated performance insights discovered through analysis cycles",
+      "properties": {
+        "top_performing_topics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Topics that consistently perform above average"
+        },
+        "top_performing_formats": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Content formats that outperform (e.g., tutorials, live demos)"
+        },
+        "audience_growth_drivers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "What content drives subscriber/follower growth"
+        },
+        "avg_ctr": { "type": "number", "description": "Rolling average CTR across platforms" },
+        "avg_retention_30s": { "type": "number", "description": "Rolling average 30-second retention" },
+        "total_content_analyzed": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "System metadata for versioning and audit trail",
+      "required": ["version", "created_at", "updated_at"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "last_onboard": { "type": "string", "format": "date-time", "description": "Last time /viral:onboard was run" },
+        "last_analysis": { "type": "string", "format": "date-time", "description": "Last time /viral:analyze updated the brain" },
+        "evolution_log": {
+          "type": "array",
+          "description": "Logged brain updates with timestamps and reasons",
+          "items": {
+            "type": "object",
+            "required": ["timestamp", "reason", "changes"],
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "reason": { "type": "string" },
+              "changes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Human-readable list of what changed"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

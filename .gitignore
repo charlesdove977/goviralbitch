@@ -1,0 +1,53 @@
+# Secrets
+.env
+
+# User-generated data (personal to each user)
+data/agent-brain.json
+data/topics/
+data/angles.jsonl
+data/hooks.jsonl
+data/scripts.jsonl
+data/analytics/
+data/insights/
+data/idea-board.jsonl
+data/calendar.jsonl
+data/recon/
+data/hooks/
+data/scripts/
+data/angles/
+
+# Keep template files tracked
+!data/cta-templates.json
+
+# Recon runtime data
+recon/data/
+recon/cache/
+recon/*.db
+
+# Logs
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# PAUL workflow state (development only)
+.paul/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/

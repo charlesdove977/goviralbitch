@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — Viral Command Recon</title>
+    <link rel="stylesheet" href="/static/css/tactical.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-brand">VIRAL COMMAND <span class="accent">RECON</span></div>
+        <div class="nav-links">
+            <a href="/">Competitors</a>
+            <a href="/skeleton-ripper">Skeleton Ripper</a>
+            <a href="/settings" class="active">Settings</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Settings</h1>
+            <p class="subtitle">Configure credentials, API keys, and LLM providers</p>
+        </div>
+
+        <form id="settingsForm" class="settings-form">
+            <section class="settings-section">
+                <h2>Instagram Credentials</h2>
+                <p class="section-desc">Required for scraping Instagram competitor reels via Instaloader</p>
+                <div class="form-group">
+                    <label for="ig_username">Username</label>
+                    <input type="text" id="ig_username" placeholder="your_ig_username">
+                </div>
+                <div class="form-group">
+                    <label for="ig_password">Password</label>
+                    <input type="password" id="ig_password" placeholder="••••••••">
+                    <small>Stored locally in data/recon/.credentials (gitignored)</small>
+                </div>
+            </section>
+
+            <section class="settings-section">
+                <h2>API Keys</h2>
+                <div class="form-group">
+                    <label for="openai_api_key">OpenAI API Key</label>
+                    <input type="password" id="openai_api_key" placeholder="sk-...">
+                    <small>Used for Whisper transcription and GPT extraction</small>
+                </div>
+                <div class="form-group">
+                    <label for="anthropic_api_key">Anthropic API Key (optional)</label>
+                    <input type="password" id="anthropic_api_key" placeholder="sk-ant-...">
+                </div>
+                <div class="form-group">
+                    <label for="google_api_key">Google API Key (optional)</label>
+                    <input type="password" id="google_api_key" placeholder="AI...">
+                </div>
+            </section>
+
+            <section class="settings-section">
+                <h2>LLM Configuration</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="llm_provider">Default Provider</label>
+                        <select id="llm_provider">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="google">Google</option>
+                            <option value="local">Local (Ollama)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="llm_model">Default Model</label>
+                        <input type="text" id="llm_model" value="gpt-4o-mini" placeholder="gpt-4o-mini">
+                    </div>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Save Settings</button>
+                <span id="saveStatus" class="save-status"></span>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Load current settings
+        async function loadSettings() {
+            try {
+                const resp = await fetch('/api/settings');
+                const settings = await resp.json();
+                document.getElementById('ig_username').value = settings.ig_username || '';
+                document.getElementById('llm_provider').value = settings.llm_provider || 'openai';
+                document.getElementById('llm_model').value = settings.llm_model || 'gpt-4o-mini';
+                if (settings.ig_password_set) {
+                    document.getElementById('ig_password').placeholder = '••••••• (set)';
+                }
+                if (settings.openai_api_key_set) {
+                    document.getElementById('openai_api_key').placeholder = 'sk-••••••• (set)';
+                }
+            } catch (e) {
+                console.error('Failed to load settings', e);
+            }
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('saveStatus');
+            status.textContent = 'Saving...';
+
+            const data = {};
+            ['ig_username', 'ig_password', 'openai_api_key', 'anthropic_api_key',
+             'google_api_key', 'llm_provider', 'llm_model'].forEach(key => {
+                const val = document.getElementById(key).value.trim();
+                if (val) data[key] = val;
+            });
+
+            try {
+                const resp = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                status.textContent = result.success ? 'Saved!' : 'Error saving';
+                status.className = result.success ? 'save-status success' : 'save-status error';
+            } catch (e) {
+                status.textContent = 'Error saving settings';
+                status.className = 'save-status error';
+            }
+        });
+
+        loadSettings();
+    </script>
+</body>
+</html>

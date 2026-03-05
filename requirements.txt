@@ -1,0 +1,9 @@
+# Recon module dependencies
+flask>=2.0.0
+requests>=2.25.0
+instaloader>=4.10
+openai-whisper>=20231117
+yt-dlp>=2023.0.0
+
+# PDF generation
+reportlab>=4.0.0

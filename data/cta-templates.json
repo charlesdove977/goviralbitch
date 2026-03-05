@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Platform-specific CTA templates keyed by platform + cta_type. Use {{variable}} placeholders."
+  },
+  "templates": {
+    "youtube_longform": {
+      "community": [
+        "I break down the full setup process in my Skool community — link in the description",
+        "Want the templates I used? They're all inside my Skool community — join free below",
+        "I go deeper on {{topic}} inside my Skool community — link in the description"
+      ],
+      "lead_magnet": [
+        "I put together a free {{resource}} that covers everything — grab it in the description",
+        "Download the {{resource}} I used in this video — link below",
+        "Get my free {{resource}} with all the steps from this video — link in the description"
+      ],
+      "website": [
+        "Check out {{website_url}} to see how we build these for clients",
+        "See our full portfolio at {{website_url}} — link in the description"
+      ],
+      "dm": [
+        "DM me on Instagram if you want help setting this up — @{{handle}}",
+        "Have questions? DM me on Instagram — I reply to everything"
+      ],
+      "booking": [
+        "If you want us to build this for you, book a call — link in the description",
+        "Want this done-for-you? Book a free strategy call — link below"
+      ],
+      "product": [
+        "We built a tool that does this automatically — check it out in the description",
+        "Try {{product_name}} free — link in the description"
+      ]
+    },
+    "youtube_shorts": {
+      "community": [
+        "Full breakdown in my Skool community — link in bio",
+        "Want the full version? Join my Skool — link in bio"
+      ],
+      "lead_magnet": [
+        "Free {{resource}} in my bio",
+        "Grab the {{resource}} — link in bio"
+      ],
+      "website": [
+        "More at {{website_url}} — link in bio"
+      ],
+      "dm": [
+        "DM me 'setup' on IG for the walkthrough",
+        "Comment 'HOW' and I'll send you the steps"
+      ],
+      "booking": [
+        "Book a free call — link in bio",
+        "Want this built for you? Link in bio"
+      ],
+      "product": [
+        "Try it free — link in bio"
+      ]
+    },
+    "instagram_reels": {
+      "community": [
+        "Full tutorial inside my Skool community — link in bio",
+        "I teach this step-by-step in my Skool — link in bio",
+        "Comment '{{keyword}}' and I'll DM you the community link"
+      ],
+      "lead_magnet": [
+        "Comment '{{keyword}}' and I'll DM you the free {{resource}}",
+        "Free {{resource}} — link in bio",
+        "DM me '{{keyword}}' for the free {{resource}}"
+      ],
+      "website": [
+        "See more at {{website_url}} — link in bio"
+      ],
+      "dm": [
+        "DM me '{{keyword}}' and I'll send you everything",
+        "Comment '{{keyword}}' and I'll DM you the details"
+      ],
+      "booking": [
+        "DM me 'READY' to book a free strategy call",
+        "Free consultation — link in bio"
+      ],
+      "product": [
+        "Try {{product_name}} — link in bio",
+        "Comment '{{keyword}}' and I'll DM you access"
+      ]
+    },
+    "tiktok": {
+      "community": [
+        "Full breakdown in my community — link in bio",
+        "Comment '{{keyword}}' for the community link"
+      ],
+      "lead_magnet": [
+        "Comment '{{keyword}}' and I'll send you the free {{resource}}",
+        "Free {{resource}} — link in bio"
+      ],
+      "website": [
+        "More at {{website_url}} — link in bio"
+      ],
+      "dm": [
+        "DM me '{{keyword}}' for the full walkthrough",
+        "Comment '{{keyword}}' and I'll DM you"
+      ],
+      "booking": [
+        "Book a free call — link in bio"
+      ],
+      "product": [
+        "Try it free — link in bio"
+      ]
+    },
+    "linkedin": {
+      "community": [
+        "I go deeper on this inside my Skool community — check the link in my featured section",
+        "Want the full framework? I share it in my Skool community — link in featured"
+      ],
+      "lead_magnet": [
+        "I put together a free {{resource}} covering this — DM me '{{keyword}}' and I'll send it over",
+        "Comment '{{keyword}}' and I'll send you the free {{resource}}"
+      ],
+      "website": [
+        "We document our full process at {{website_url}}",
+        "See how we do this for clients at {{website_url}} — link in featured"
+      ],
+      "dm": [
+        "DM me if you want to talk about implementing this for your business",
+        "If this resonates, DM me — happy to share how we set this up"
+      ],
+      "booking": [
+        "If you want help implementing this, DM me or book a call — link in featured",
+        "Want us to build this for you? Comment 'INTERESTED' and I'll reach out"
+      ],
+      "product": [
+        "We built {{product_name}} to solve exactly this — link in featured",
+        "Comment '{{keyword}}' and I'll send you access to try it"
+      ]
+    }
+  },
+  "variables": {
+    "community_url": "{{monetization.cta_strategy.community_url}}",
+    "website_url": "{{monetization.cta_strategy.website_url}}",
+    "lead_magnet_url": "{{monetization.cta_strategy.lead_magnet_url}}",
+    "handle": "{{identity.social_handles.instagram}}",
+    "product_name": "{{monetization.product_name}}"
+  }
+}

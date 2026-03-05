@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "analytics-entry.schema.json",
+  "title": "Analytics Entry",
+  "description": "Per-content performance data collected by /viral:analyze. One entry per content piece per analysis run.",
+  "type": "object",
+  "required": ["id", "content_id", "platform", "analyzed_at", "metrics"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique analytics entry ID" },
+    "content_id": { "type": "string", "description": "Reference to the script/content ID" },
+    "platform": {
+      "type": "string",
+      "enum": ["youtube_longform", "youtube_shorts", "instagram_reels", "instagram_posts", "tiktok", "linkedin", "facebook"]
+    },
+    "published_at": { "type": "string", "format": "date-time" },
+    "analyzed_at": { "type": "string", "format": "date-time" },
+    "days_since_publish": { "type": "integer", "minimum": 0 },
+    "metrics": {
+      "type": "object",
+      "description": "Platform-specific performance metrics",
+      "properties": {
+        "views": { "type": "integer", "minimum": 0 },
+        "impressions": { "type": "integer", "minimum": 0 },
+        "ctr": { "type": "number", "minimum": 0, "maximum": 100, "description": "Click-through rate %" },
+        "retention_30s": { "type": "number", "minimum": 0, "maximum": 100, "description": "30-second retention %" },
+        "avg_view_duration": { "type": "number", "description": "Average view duration in seconds" },
+        "avg_view_percentage": { "type": "number", "minimum": 0, "maximum": 100, "description": "Average % of video watched" },
+        "completion_rate": { "type": "number", "minimum": 0, "maximum": 100, "description": "% who watched to the end (short-form)" },
+        "likes": { "type": "integer", "minimum": 0 },
+        "comments": { "type": "integer", "minimum": 0 },
+        "shares": { "type": "integer", "minimum": 0 },
+        "saves": { "type": "integer", "minimum": 0 },
+        "subscribers_gained": { "type": "integer", "minimum": 0, "description": "New subscribers/followers from this content" },
+        "engagement_rate": { "type": "number", "minimum": 0, "description": "Total engagement / impressions %" }
+      }
+    },
+    "thumbnail": {
+      "type": "object",
+      "description": "Thumbnail analysis data",
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "text_overlay": { "type": "string" },
+        "emotion": { "type": "string", "enum": ["excited", "surprised", "frustrated", "serious", "smiling", "other"] },
+        "style": { "type": "string", "enum": ["clean-minimal", "bold-text", "before-after", "screenshot", "face-closeup", "listicle", "dramatic", "other"] },
+        "ctr_performance": {
+          "type": "string",
+          "enum": ["below_average", "average", "above_average", "top_performer"]
+        }
+      }
+    },
+    "hook_pattern_used": {
+      "type": "string",
+      "enum": ["contradiction", "specificity", "timeframe_tension", "pov_as_advice", "vulnerable_confession", "pattern_interrupt"],
+      "description": "Which hook pattern was used — for feedback loop"
+    },
+    "topic_category": { "type": "string", "description": "Topic category — for learning weight updates" },
+    "content_pillar": { "type": "string", "description": "Which content pillar this maps to" },
+    "is_winner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this content is flagged as a winner by /analyze Phase G"
+    },
+    "winner_reason": { "type": "string", "description": "Why this was flagged as a winner (if applicable)" },
+    "winner_metrics": {
+      "type": "object",
+      "description": "Detailed winner extraction data populated by Phase G",
+      "properties": {
+        "threshold_used": { "type": "string", "description": "The specific threshold that triggered winner status (e.g., 'ctr >= median * 1.5')" },
+        "percentile": { "type": "number", "minimum": 0, "maximum": 100, "description": "Where this content ranks among all same-platform entries for the triggering metric" }
+      }
+    },
+    "collection_method": {
+      "type": "string",
+      "enum": ["youtube_data_api", "user_input", "mixed"],
+      "description": "How metrics were collected — API, user-provided, or combination"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the published content (YouTube video URL, LinkedIn post URL, etc.)"
+    },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

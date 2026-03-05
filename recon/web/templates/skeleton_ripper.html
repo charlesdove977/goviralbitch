@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skeleton Ripper — Viral Command</title>
+    <link rel="stylesheet" href="/static/css/tactical.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-brand">VIRAL COMMAND <span class="accent">RECON</span></div>
+        <div class="nav-links">
+            <a href="/">Competitors</a>
+            <a href="/skeleton-ripper" class="active">Skeleton Ripper</a>
+            <a href="/settings">Settings</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Content Skeleton Ripper</h1>
+            <p class="subtitle">Extract hook/value/CTA patterns from competitor content</p>
+        </div>
+
+        <div class="config-panel">
+            <div class="form-group">
+                <label>Select Competitors</label>
+                <div id="creatorSelect" class="creator-select">
+                    <!-- Populated by JS -->
+                </div>
+                <button class="btn btn-sm" onclick="selectAll()">Select All</button>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Videos per Creator</label>
+                    <select id="videosPerCreator">
+                        <option value="3" selected>3 (Recommended)</option>
+                        <option value="5">5</option>
+                        <option value="1">1 (Quick test)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>LLM Provider</label>
+                    <select id="llmProvider">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <select id="llmModel">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button id="analyzeBtn" class="btn btn-primary btn-lg" onclick="runAnalysis()">
+                    Analyze Selected Competitors
+                </button>
+                <button class="btn btn-secondary" onclick="pushToDiscover()">
+                    Push Results to Discover
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressPanel" class="progress-panel" style="display:none;">
+            <h3>Analysis Progress</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width:0%"></div>
+            </div>
+            <div id="progressMessage" class="progress-message">Starting...</div>
+            <div id="progressDetails" class="progress-details"></div>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsPanel" class="results-panel" style="display:none;">
+            <h3>Results</h3>
+            <div id="resultsContent"></div>
+        </div>
+    </main>
+
+    <script>
+        let providers = [];
+
+        async function init() {
+            // Load competitors
+            const compResp = await fetch('/api/competitors');
+            const competitors = await compResp.json();
+            const select = document.getElementById('creatorSelect');
+            select.innerHTML = competitors.map(c => {
+                const handle = c.handle.replace('@', '');
+                return `<label class="creator-option">
+                    <input type="checkbox" value="${handle}" data-platform="${c.platform}">
+                    <span class="platform-badge ${c.platform}">${c.platform}</span>
+                    @${handle} <small>(${c.name})</small>
+                </label>`;
+            }).join('');
+
+            // Load providers
+            const provResp = await fetch('/api/providers');
+            providers = await provResp.json();
+            const provSelect = document.getElementById('llmProvider');
+            provSelect.innerHTML = providers
+                .filter(p => p.available)
+                .map(p => `<option value="${p.id}">${p.name}</option>`)
+                .join('');
+            provSelect.addEventListener('change', updateModels);
+            updateModels();
+        }
+
+        function updateModels() {
+            const providerId = document.getElementById('llmProvider').value;
+            const provider = providers.find(p => p.id === providerId);
+            const modelSelect = document.getElementById('llmModel');
+            modelSelect.innerHTML = (provider?.models || [])
+                .map(m => `<option value="${m.id}">${m.name}</option>`)
+                .join('');
+        }
+
+        function selectAll() {
+            document.querySelectorAll('#creatorSelect input[type="checkbox"]').forEach(cb => cb.checked = true);
+        }
+
+        async function runAnalysis() {
+            const checkboxes = document.querySelectorAll('#creatorSelect input:checked');
+            const usernames = Array.from(checkboxes).map(cb => cb.value);
+
+            if (!usernames.length) {
+                alert('Select at least one competitor');
+                return;
+            }
+
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+
+            const progressPanel = document.getElementById('progressPanel');
+            progressPanel.style.display = 'block';
+
+            try {
+                const resp = await fetch('/api/recon/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        usernames: usernames,
+                        videos_per_creator: parseInt(document.getElementById('videosPerCreator').value),
+                        llm_provider: document.getElementById('llmProvider').value,
+                        llm_model: document.getElementById('llmModel').value,
+                    })
+                });
+                const data = await resp.json();
+                if (data.job_id) {
+                    pollAnalysis(data.job_id);
+                }
+            } catch (e) {
+                document.getElementById('progressMessage').textContent = 'Error starting analysis';
+                btn.disabled = false;
+                btn.textContent = 'Analyze Selected Competitors';
+            }
+        }
+
+        function pollAnalysis(jobId) {
+            const interval = setInterval(async () => {
+                try {
+                    const resp = await fetch(`/api/jobs/${jobId}/status`);
+                    const job = await resp.json();
+
+                    document.getElementById('progressMessage').textContent = job.message || '';
+
+                    if (job.progress) {
+                        const p = job.progress;
+                        const pct = p.total_target > 0
+                            ? Math.round((p.skeletons_extracted / p.total_target) * 100)
+                            : 0;
+                        document.getElementById('progressFill').style.width = pct + '%';
+                        document.getElementById('progressDetails').innerHTML = `
+                            Phase: ${p.phase || ''}<br>
+                            Scraped: ${p.videos_scraped || 0} | Transcribed: ${p.videos_transcribed || 0} | Extracted: ${p.skeletons_extracted || 0}
+                            ${p.errors?.length ? '<br><span class="error">Errors: ' + p.errors.join(', ') + '</span>' : ''}
+                        `;
+                    }
+
+                    if (job.status === 'complete' || job.status === 'error') {
+                        clearInterval(interval);
+                        document.getElementById('analyzeBtn').disabled = false;
+                        document.getElementById('analyzeBtn').textContent = 'Analyze Selected Competitors';
+
+                        if (job.status === 'complete' && job.result) {
+                            showResults(job.result);
+                        }
+                    }
+                } catch (e) {
+                    clearInterval(interval);
+                }
+            }, 3000);
+        }
+
+        function showResults(result) {
+            const panel = document.getElementById('resultsPanel');
+            panel.style.display = 'block';
+            document.getElementById('resultsContent').innerHTML = `
+                <div class="result-summary">
+                    <p><strong>${result.skeleton_count}</strong> content skeletons extracted</p>
+                    ${result.report_path ? '<p>Report: ' + result.report_path + '</p>' : ''}
+                    <button class="btn btn-primary" onclick="pushToDiscover()">Push to Discover Pipeline</button>
+                </div>
+            `;
+        }
+
+        async function pushToDiscover() {
+            try {
+                const resp = await fetch('/api/recon/push-to-discover', {method: 'POST'});
+                const data = await resp.json();
+                if (data.success) {
+                    alert(`Pushed ${data.topics_count} topics to discovery pipeline!`);
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (e) {
+                alert('Error pushing to discover');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

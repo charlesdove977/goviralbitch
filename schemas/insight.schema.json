@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "insight.schema.json",
+  "title": "Aggregated Insights",
+  "description": "Aggregated patterns discovered through analysis cycles. Updated by /viral:analyze, consumed by all modules.",
+  "type": "object",
+  "required": ["last_updated"],
+  "properties": {
+    "last_updated": { "type": "string", "format": "date-time" },
+    "analysis_count": { "type": "integer", "minimum": 0, "default": 0, "description": "Total number of analysis runs completed" },
+    "top_topics": {
+      "type": "array",
+      "description": "Topics that consistently perform above average",
+      "items": {
+        "type": "object",
+        "required": ["topic", "avg_performance", "content_count"],
+        "properties": {
+          "topic": { "type": "string" },
+          "avg_performance": { "type": "number", "description": "Average composite score" },
+          "content_count": { "type": "integer", "minimum": 1 },
+          "best_platform": { "type": "string" },
+          "trend": {
+            "type": "string",
+            "enum": ["rising", "stable", "declining"],
+            "description": "Performance trend direction"
+          }
+        }
+      }
+    },
+    "hook_performance": {
+      "type": "object",
+      "description": "Performance breakdown by hook pattern across platforms",
+      "properties": {
+        "contradiction": { "$ref": "#/definitions/hook_stats" },
+        "specificity": { "$ref": "#/definitions/hook_stats" },
+        "timeframe_tension": { "$ref": "#/definitions/hook_stats" },
+        "pov_as_advice": { "$ref": "#/definitions/hook_stats" },
+        "vulnerable_confession": { "$ref": "#/definitions/hook_stats" },
+        "pattern_interrupt": { "$ref": "#/definitions/hook_stats" }
+      }
+    },
+    "thumbnail_patterns": {
+      "type": "array",
+      "description": "Thumbnail patterns that drive high CTR",
+      "items": {
+        "type": "object",
+        "properties": {
+          "style": { "type": "string" },
+          "text_approach": { "type": "string" },
+          "avg_ctr": { "type": "number" },
+          "sample_count": { "type": "integer" }
+        }
+      }
+    },
+    "optimal_posting_times": {
+      "type": "object",
+      "description": "Best posting times by platform, discovered through data",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "best_day": { "type": "string" },
+          "best_time": { "type": "string", "description": "HH:MM format" },
+          "timezone": { "type": "string" },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Confidence level based on data volume"
+          }
+        }
+      }
+    },
+    "competitor_insights": {
+      "type": "array",
+      "description": "Patterns observed in competitor content",
+      "items": {
+        "type": "object",
+        "properties": {
+          "competitor": { "type": "string" },
+          "strategy_summary": { "type": "string" },
+          "top_performing_topics": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "posting_frequency": { "type": "string" }
+        }
+      }
+    },
+    "content_format_performance": {
+      "type": "object",
+      "description": "How different content formats perform",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "avg_views": { "type": "number" },
+          "avg_engagement": { "type": "number" },
+          "content_count": { "type": "integer" },
+          "trend": { "type": "string", "enum": ["rising", "stable", "declining"] }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hook_stats": {
+      "type": "object",
+      "properties": {
+        "times_used": { "type": "integer", "minimum": 0 },
+        "avg_ctr": { "type": "number" },
+        "avg_retention_30s": { "type": "number" },
+        "avg_engagement": { "type": "number" },
+        "best_platform": { "type": "string" },
+        "trend": { "type": "string", "enum": ["rising", "stable", "declining"] }
+      }
+    }
+  },
+  "additionalProperties": false
+}

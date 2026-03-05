@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Command — Recon Intelligence</title>
+    <link rel="stylesheet" href="/static/css/tactical.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-brand">VIRAL COMMAND <span class="accent">RECON</span></div>
+        <div class="nav-links">
+            <a href="/" class="active">Competitors</a>
+            <a href="/skeleton-ripper">Skeleton Ripper</a>
+            <a href="/settings">Settings</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Competitor Intelligence</h1>
+            <p class="subtitle">Scrape, analyze, and extract winning patterns from competitor content</p>
+            <div class="header-actions">
+                <button id="scrapeAllBtn" class="btn btn-primary" onclick="scrapeAll()">
+                    Scrape All Competitors
+                </button>
+                <button class="btn btn-secondary" onclick="pushToDiscover()">
+                    Push to Discover
+                </button>
+            </div>
+        </div>
+
+        <div id="competitorGrid" class="competitor-grid">
+            <!-- Populated by JS -->
+            <div class="loading">Loading competitors from agent brain...</div>
+        </div>
+
+        <!-- Status log -->
+        <div id="statusLog" class="status-log" style="display:none;">
+            <h3>Activity Log</h3>
+            <div id="logEntries"></div>
+        </div>
+    </main>
+
+    <script>
+        let activePolls = {};
+
+        async function loadCompetitors() {
+            try {
+                const resp = await fetch('/api/competitors');
+                const competitors = await resp.json();
+                renderCompetitors(competitors);
+            } catch (e) {
+                document.getElementById('competitorGrid').innerHTML =
+                    '<div class="error">Failed to load competitors. Check agent brain.</div>';
+            }
+        }
+
+        function renderCompetitors(competitors) {
+            const grid = document.getElementById('competitorGrid');
+            if (!competitors.length) {
+                grid.innerHTML = '<div class="empty">No competitors in agent brain. Run /viral:onboard first.</div>';
+                return;
+            }
+
+            grid.innerHTML = competitors.map(c => {
+                const handle = c.handle.replace('@', '');
+                const lastScraped = c.last_scraped
+                    ? new Date(c.last_scraped).toLocaleDateString()
+                    : 'Never';
+                const platformIcon = c.platform === 'youtube' ? '▶' : '◎';
+
+                return `
+                <div class="competitor-card" id="card-${handle}">
+                    <div class="card-header">
+                        <span class="platform-badge ${c.platform}">${platformIcon} ${c.platform}</span>
+                        <h3>${c.name}</h3>
+                        <span class="handle">@${handle}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="why-watch">${c.why_watch}</p>
+                        <div class="card-stats">
+                            <div class="stat">
+                                <span class="stat-value">${c.reel_count || 0}</span>
+                                <span class="stat-label">Reels</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">${c.top_views ? c.top_views.toLocaleString() : '—'}</span>
+                                <span class="stat-label">Top Views</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">${lastScraped}</span>
+                                <span class="stat-label">Last Scraped</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-sm" onclick="scrapeCompetitor('${handle}')">
+                            Scrape Top 50
+                        </button>
+                        <span class="card-status" id="status-${handle}"></span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function scrapeCompetitor(handle) {
+            const statusEl = document.getElementById(`status-${handle}`);
+            statusEl.textContent = 'Starting...';
+            statusEl.className = 'card-status running';
+
+            try {
+                const resp = await fetch(`/api/competitors/${handle}/scrape`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({max_reels: 50})
+                });
+                const data = await resp.json();
+
+                if (data.job_id) {
+                    pollJob(data.job_id, handle);
+                }
+            } catch (e) {
+                statusEl.textContent = 'Error starting scrape';
+                statusEl.className = 'card-status error';
+            }
+        }
+
+        function pollJob(jobId, handle) {
+            const statusEl = document.getElementById(`status-${handle}`);
+            const interval = setInterval(async () => {
+                try {
+                    const resp = await fetch(`/api/jobs/${jobId}/status`);
+                    const job = await resp.json();
+
+                    statusEl.textContent = job.message || job.status;
+
+                    if (job.status === 'complete') {
+                        clearInterval(interval);
+                        statusEl.className = 'card-status complete';
+                        loadCompetitors(); // Refresh data
+                    } else if (job.status === 'error') {
+                        clearInterval(interval);
+                        statusEl.className = 'card-status error';
+                    } else {
+                        statusEl.className = 'card-status running';
+                    }
+                } catch (e) {
+                    clearInterval(interval);
+                    statusEl.textContent = 'Poll error';
+                    statusEl.className = 'card-status error';
+                }
+            }, 2000);
+        }
+
+        async function scrapeAll() {
+            const btn = document.getElementById('scrapeAllBtn');
+            btn.disabled = true;
+            btn.textContent = 'Scraping...';
+
+            try {
+                const resp = await fetch('/api/competitors/scrape-all', {method: 'POST'});
+                const data = await resp.json();
+                addLog(`Started ${data.count} scrape jobs`);
+            } catch (e) {
+                addLog('Error starting scrape-all');
+            }
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = 'Scrape All Competitors';
+            }, 5000);
+        }
+
+        async function pushToDiscover() {
+            try {
+                const resp = await fetch('/api/recon/push-to-discover', {method: 'POST'});
+                const data = await resp.json();
+                if (data.success) {
+                    addLog(`Pushed ${data.topics_count} topics to discovery pipeline`);
+                    alert(`Success! ${data.topics_count} topics pushed to ${data.output_file}`);
+                } else {
+                    addLog(`Push failed: ${data.error}`);
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (e) {
+                addLog('Error pushing to discover');
+            }
+        }
+
+        function addLog(msg) {
+            const log = document.getElementById('statusLog');
+            const entries = document.getElementById('logEntries');
+            log.style.display = 'block';
+            const time = new Date().toLocaleTimeString();
+            entries.innerHTML = `<div class="log-entry"><span class="log-time">${time}</span> ${msg}</div>` + entries.innerHTML;
+        }
+
+        // Load on page load
+        loadCompetitors();
+    </script>
+</body>
+</html>

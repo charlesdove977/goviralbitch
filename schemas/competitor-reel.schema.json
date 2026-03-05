@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "competitor-reel.schema.json",
+  "title": "Competitor Reel/Video",
+  "description": "Metadata for a scraped competitor reel or video from the recon module.",
+  "type": "object",
+  "required": ["shortcode", "url", "views"],
+  "properties": {
+    "shortcode": {
+      "type": "string",
+      "description": "Platform-specific content identifier (Instagram shortcode, YouTube video ID)"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Direct URL to the reel/video"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Direct video file URL (for download)"
+    },
+    "views": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "View/play count"
+    },
+    "likes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Like count"
+    },
+    "comments": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Comment count"
+    },
+    "caption": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "First 200 chars of caption/description"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the content was posted"
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "full_name": { "type": "string" },
+        "followers": { "type": "integer" },
+        "username": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": true
+}

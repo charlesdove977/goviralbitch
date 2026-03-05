@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "calendar-entry.schema.json",
+  "title": "Calendar Entry",
+  "description": "A scheduled content slot in the content calendar. Generated from cadence config, linked to idea board entries.",
+  "type": "object",
+  "required": ["id", "slot_date", "slot_type", "status", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique slot ID (e.g., cal_20260310_short_1)",
+      "pattern": "^cal_\\d{8}_\\w+_\\d+$"
+    },
+    "slot_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled date (YYYY-MM-DD)"
+    },
+    "slot_type": {
+      "type": "string",
+      "enum": ["shortform", "longform"],
+      "description": "Content format for this slot"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["youtube_longform", "youtube_shorts", "instagram_reels", "instagram_posts", "tiktok", "linkedin", "facebook"],
+      "description": "Target platform (distributed from brain posting config)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "assigned", "published", "skipped"],
+      "description": "Slot lifecycle: open (empty) → assigned (idea linked) → published (live) → skipped (intentionally empty)"
+    },
+    "linked_idea_id": {
+      "type": "string",
+      "description": "Link to idea board entry (set when assigned)"
+    },
+    "linked_script_id": {
+      "type": "string",
+      "description": "Link to script entry (set when scripted)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes (e.g., filming day, travel — skip)"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

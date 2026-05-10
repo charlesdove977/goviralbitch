@@ -69,7 +69,7 @@ for dir in "${DIRS[@]}"; do
     target="$PIPELINE_DIR/$dir"
     if [[ ! -d "$target" ]]; then
         mkdir -p "$target"
-        ((CREATED++))
+        CREATED=$((CREATED+1))
     fi
 done
 echo "  ✓ Directories ready ($CREATED created, $((${#DIRS[@]} - CREATED)) already existed)"
@@ -93,9 +93,9 @@ for file in "${DATA_FILES[@]}"; do
     target="$PIPELINE_DIR/$file"
     if [[ ! -f "$target" ]]; then
         touch "$target"
-        ((INITIALIZED++))
+        INITIALIZED=$((INITIALIZED+1))
     else
-        ((SKIPPED++))
+        SKIPPED=$((SKIPPED+1))
     fi
 done
 echo "  ✓ Data files ready ($INITIALIZED created, $SKIPPED already existed)"
@@ -140,8 +140,11 @@ echo "Step 4: Checking CLI tools..."
 CLI_STATUS="OK"
 
 # Python version
+PY_VERSION=""
 if command -v python3 &>/dev/null; then
-    PY_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
+    PY_VERSION=$(python3 --version 2>&1 | awk '{print $2}') || PY_VERSION=""
+fi
+if [[ -n "$PY_VERSION" && "$PY_VERSION" =~ ^[0-9]+\.[0-9]+ ]]; then
     PY_MAJOR=$(echo "$PY_VERSION" | cut -d. -f1)
     PY_MINOR=$(echo "$PY_VERSION" | cut -d. -f2)
     if [[ "$PY_MAJOR" -ge 3 ]] && [[ "$PY_MINOR" -ge 8 ]]; then
@@ -156,8 +159,11 @@ else
 fi
 
 # yt-dlp
+YT_VERSION=""
 if command -v yt-dlp &>/dev/null; then
-    YT_VERSION=$(yt-dlp --version 2>&1)
+    YT_VERSION=$(yt-dlp --version 2>&1) || YT_VERSION=""
+fi
+if [[ -n "$YT_VERSION" ]]; then
     echo "  ✓ yt-dlp $YT_VERSION"
 else
     echo "  ⚠ yt-dlp not found — install: pip3 install yt-dlp"
@@ -165,8 +171,11 @@ else
 fi
 
 # Instaloader
+INSTA_VERSION=""
 if command -v instaloader &>/dev/null; then
-    INSTA_VERSION=$(instaloader --version 2>&1 | head -1)
+    INSTA_VERSION=$(instaloader --version 2>&1 | head -1) || INSTA_VERSION=""
+fi
+if [[ -n "$INSTA_VERSION" ]]; then
     echo "  ✓ Instaloader $INSTA_VERSION"
 else
     echo "  ⚠ Instaloader not found — install: pip3 install instaloader"
@@ -266,7 +275,7 @@ else
                         continue
                     fi
                     ln -sf "$cmd" "$target"
-                    ((LINKED++))
+                    LINKED=$((LINKED+1))
                 done
                 TOTAL=$(ls "$COMMANDS_SRC"/viral-*.md 2>/dev/null | wc -l | tr -d ' ')
                 echo "  ✓ Symlinked to $GLOBAL_DIR ($LINKED new, $((TOTAL - LINKED)) already linked)"

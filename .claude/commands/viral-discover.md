@@ -554,7 +554,8 @@ These hooks will appear as inspiration options next time you run:
 
 **Skip this phase if `DISCOVERY_MODE = competitor`.**
 
-Search YouTube, Reddit, and GitHub using the creator's pillar keywords to find what's trending RIGHT NOW.
+Search YouTube, Reddit, GitHub, and optional X source packets using the
+creator's pillar keywords to find what's trending RIGHT NOW.
 
 ### Step 1: Build Search Queries
 
@@ -614,6 +615,29 @@ curl -s -H "User-Agent: ViralCommand/1.0" "https://www.reddit.com/r/artificial/t
 - Upvotes (score), comment count
 - Post age
 
+### Step 3.5: X Source Packet (Optional)
+
+If the creator wants X evidence, or if the niche is active on X, collect
+a bounded source packet before GitHub search. Use an installed
+OpenClaw tool such as TweetClaw when available:
+
+```
+Use @xquik/tweetclaw to collect recent public X posts for "${QUERY}".
+Return post URLs, author handles, timestamps, text, and visible
+engagement metrics only. Do not draft, schedule, publish, reply, follow,
+or DM anyone.
+```
+
+**Extract per result:**
+- Post text, author handle, post URL
+- Visible engagement metrics
+- Published date
+- Repeated hook or pain pattern
+
+Keep the packet in local working notes only. Deduplicate by post URL,
+rank by visible engagement, and treat X as source evidence for angle
+selection. Do not copy post text into generated content.
+
 ### Step 4: GitHub Search
 
 Search for trending repos and discussions:
@@ -661,6 +685,15 @@ REDDIT ({N} results)
 ────┼──────────────────────────────────────────┼───────────────────┼──────────┼──────────┼──────
 ...
 
+X ({N} optional results)
+───────────────────────────────────────────────────
+ #  │ Hook / Pain Pattern                       │ Handle            │ Engagement │ Age
+────┼──────────────────────────────────────────┼───────────────────┼────────────┼──────
+ 1  │ {pattern, 40 chars}                       │ @{handle}         │ {metrics}  │ {days}d
+    │ https://x.com/{handle}/status/...         │                   │            │
+────┼──────────────────────────────────────────┼───────────────────┼────────────┼──────
+...
+
 GITHUB ({N} results)
 ───────────────────────────────────────────────────
  #  │ Repo                                     │ Description       │ Stars    │ Language │ Age
@@ -681,6 +714,8 @@ GITHUB ({N} results)
 - YouTube API: uses same quota as competitor search — max 5 queries to conserve quota
 - If any platform returns 0 results or errors, note it and continue with the others
 - De-duplicate: if a YouTube video appears in both competitor scrape AND keyword search, show it once with both sources noted
+- X packet: source evidence only. Keep publishing, replies, follows,
+  DMs, and scheduling user-approved.
 
 ---
 

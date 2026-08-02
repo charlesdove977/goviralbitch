@@ -370,12 +370,16 @@ def api_get_providers():
 
 def main():
     """Launch the Recon UI."""
+    host = os.environ.get('RECON_HOST', '0.0.0.0')
+    port = int(os.environ.get('RECON_PORT', '5001'))
+    debug = os.environ.get('RECON_DEBUG', '1').lower() not in ('0', 'false', 'no')
+
     print("\n" + "=" * 50)
     print("  VIRAL COMMAND — Recon Intelligence")
-    print("  http://localhost:5001")
+    print(f"  http://localhost:{port}")
     print("=" * 50 + "\n")
 
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host=host, port=port, debug=debug)
 
 
 if __name__ == '__main__':

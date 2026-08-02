@@ -14,6 +14,107 @@ Detailed installation and configuration for Viral Command.
 | pip | Yes | Included with Python |
 | Git | Yes | `brew install git` (macOS) |
 
+Running with Docker? You only need Docker itself — skip to [Docker](#docker) below.
+
+---
+
+## Docker
+
+The image bundles Claude Code, Python 3.12, Node 22, yt-dlp, Instaloader, ffmpeg and every Python
+dependency, so nothing but Docker Engine 20.10+ with Compose v2 has to exist on your machine.
+
+Usage mirrors the native install: one command opens the same Claude Code session you would get
+by running `claude` in the repo, and the Recon UI is available in your browser while you work.
+The commands below are identical on macOS, Linux and Windows (Docker Desktop — no WSL needed).
+
+### 1. Install Docker
+
+Skip this step if `docker compose version` already works on your machine.
+
+```bash
+# macOS — Docker Desktop via Homebrew, then launch Docker.app once
+brew install --cask docker
+
+# Windows — Docker Desktop via winget (PowerShell), then launch it once
+winget install -e --id Docker.DockerDesktop
+
+# Linux — Docker's official install script (Engine + Compose)
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER   # log out and back in to run docker without sudo
+```
+
+These are Docker's officially maintained channels, so they stay current on their own. If none of
+them fits your machine, download from [docs.docker.com/get-docker](https://docs.docker.com/get-docker/) —
+it always points at the current installers. On Windows, Docker Desktop sets up its WSL 2 backend
+automatically (it may ask for a reboot).
+
+### 2. Open Claude Code
+
+```bash
+git clone https://github.com/charlesdove977/goviralbro.git
+cd goviralbro
+docker compose run --rm goviralbro
+```
+
+The first run builds the image (a few minutes), then drops you into Claude Code inside the
+container with all seven `/viral:*` commands and the bundled `last30days` skill already
+registered. Run `/viral:onboard` to create your agent brain.
+
+The Recon Intelligence UI is started alongside the session — open
+[localhost:5001](http://localhost:5001) in your browser. The container bootstrap also creates
+the `data/` tree, initializes empty data files, and copies `.env.example` to `.env` if you
+don't have one yet.
+
+Use `docker compose run --rm goviralbro bash` if you want a shell instead, or add `--no-deps`
+to skip starting the Recon UI.
+
+### 3. Add Your API Keys
+
+Edit `.env` (same keys as a native install — see [Configure API Keys](#3-configure-api-keys)),
+then start your next session — containers pick up `.env` when they start:
+
+```bash
+docker compose up -d --force-recreate    # restart the Recon UI with the new keys
+```
+
+### Everyday Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `docker compose run --rm goviralbro` | Claude Code session with `/viral:*` loaded + Recon UI |
+| `./scripts/run-recon-ui.sh` | Recon UI only — same script as the native install |
+| `docker compose up -d` | Recon UI only, kept running in the background |
+| `docker compose run --rm goviralbro bash` | Shell in the container |
+| `docker compose logs -f recon` | Follow the Recon UI logs |
+| `docker compose down` | Stop everything |
+| `docker compose build --no-cache` | Rebuild from scratch |
+
+### How It Is Wired
+
+- **Your repo is mounted at `/app`.** `data/`, `logs/` and `.env` live on the host, so nothing is
+  lost when a container is removed, and edits to `.claude/commands/*.md` apply on the next run.
+- **`.env` is loaded into both services.** Any key you add is visible to the pipeline scripts.
+  The bundled `last30days` skill reads it too — `~/.config/last30days/.env` is symlinked to it.
+- **Claude Code's login lives in the `claude-home` volume**, so you authenticate once. Alternatively
+  set `ANTHROPIC_API_KEY` in `.env` — note that this also switches Claude Code to API billing.
+- **The container runs as the user that owns the repo**, detected at startup, so files written to
+  `data/` come out owned by you. Override with `PUID` / `PGID` if the detection is wrong:
+
+  ```bash
+  PUID=$(id -u) PGID=$(id -g) docker compose up -d
+  ```
+
+- **The Recon UI binds to `127.0.0.1` only.** Change the host port with `RECON_HOST_PORT` in `.env`.
+
+### Docker Notes
+
+- YouTube OAuth (`scripts/setup-yt-oauth.py`) opens a browser on the host — run it there, or paste
+  the URL it prints. The resulting token is written into the mounted repo either way.
+- X/Twitter search reads browser cookies, which a container doesn't have. The other discovery
+  sources (Reddit, YouTube, web) work normally; set `XAI_API_KEY` in `.env` to restore X.
+- Local Whisper (`openai-whisper`) is not preinstalled — it pulls in PyTorch. The OpenAI Whisper API
+  is used instead and needs only `OPENAI_API_KEY`.
+
 ---
 
 ## Installation
@@ -153,7 +254,9 @@ bash scripts/uninstall-crons.sh
 
 ## Windows Setup
 
-Windows users should use WSL (Windows Subsystem for Linux):
+The Docker setup works on Windows as-is — Docker Desktop handles the Linux side for you.
+
+For a native install, use WSL (Windows Subsystem for Linux):
 
 1. Install WSL: `wsl --install` in PowerShell (admin)
 2. Open WSL terminal
@@ -211,6 +314,32 @@ Instagram may rate-limit or block unauthenticated requests. If scraping fails:
 
 ```bash
 chmod +x scripts/*.sh
+```
+
+### Docker: container exits with "not writable"
+
+The startup script could not determine which user owns the mounted repo. Pass it explicitly:
+
+```bash
+PUID=$(id -u) PGID=$(id -g) docker compose up -d
+```
+
+### Docker: port 5001 already in use
+
+Another process holds the port. Pick a different one in `.env`:
+
+```bash
+RECON_HOST_PORT=5002
+```
+
+Then `docker compose up -d --force-recreate`.
+
+### Docker: changed .env but keys aren't picked up
+
+Environment variables are read when the container starts. Recreate it:
+
+```bash
+docker compose up -d --force-recreate
 ```
 
 ---

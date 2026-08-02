@@ -1,0 +1,50 @@
+name: goviralbro
+
+x-goviralbro: &goviralbro
+  build:
+    context: .
+  image: goviralbro:0.1.0
+  env_file:
+    - path: .env
+      required: false
+  working_dir: /app
+  volumes:
+    # The repo itself — data/, .env and logs/ stay on the host, and edits to
+    # .claude/commands/ take effect on the next command run.
+    - .:/app
+    # Claude Code login + config, so you only authenticate once.
+    - claude-home:/home/viral/.claude
+  init: true
+
+services:
+  # Claude Code workspace with the /viral:* commands loaded — the same session
+  # you'd get natively by running `claude` in the repo:
+  #   docker compose run --rm goviralbro
+  # The Recon UI is started alongside it (depends_on), so the browser dashboard
+  # is live at http://localhost:5001 while you work. Skip it with --no-deps.
+  # Not started by `docker compose up` — it is an interactive session.
+  goviralbro:
+    <<: *goviralbro
+    profiles: ["cli"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      - recon
+    command: ["claude"]
+
+  # Recon Intelligence UI — http://localhost:5001
+  recon:
+    <<: *goviralbro
+    container_name: goviralbro-recon
+    environment:
+      # Pinned so the published port below always maps to a listening socket.
+      RECON_HOST: "0.0.0.0"
+      RECON_PORT: "5001"
+      RECON_DEBUG: "0"
+    ports:
+      - "127.0.0.1:${RECON_HOST_PORT:-5001}:5001"
+    command: ["python", "-m", "recon.web.app"]
+    restart: unless-stopped
+
+volumes:
+  claude-home:
